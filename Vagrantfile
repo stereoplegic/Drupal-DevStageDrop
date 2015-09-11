@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 # Config Github Settings
-github_username = "fideloper"
+github_username = "stereoplegic"
 github_repo     = "Vaprobash"
 github_branch   = "1.4.1"
 github_url      = "https://raw.githubusercontent.com/#{github_username}/#{github_repo}/#{github_branch}"
@@ -30,18 +30,18 @@ server_swap           = "768" # Options: false | int (MB) - Guideline: Between o
 # EST        for Eastern Standard Time
 # US/Central for American Central
 # US/Eastern for American Eastern
-server_timezone  = "UTC"
+server_timezone  = "US/Central"
 
 # Database Configuration
 mysql_root_password   = "root"   # We'll assume user "root"
-mysql_version         = "5.5"    # Options: 5.5 | 5.6
+mysql_version         = "5.6"    # Options: 5.5 | 5.6
 mysql_enable_remote   = "false"  # remote access enabled when true
 pgsql_root_password   = "root"   # We'll assume user "root"
-mongo_version         = "2.6"    # Options: 2.6 | 3.0
+mongo_version         = "3.0"    # Options: 2.6 | 3.0
 mongo_enable_remote   = "false"  # remote access enabled when true
 
 # Languages and Packages
-php_timezone          = "UTC"    # http://php.net/manual/en/timezones.php
+php_timezone          = "America/Chicago"    # http://php.net/manual/en/timezones.php
 php_version           = "5.6"    # Options: 5.5 | 5.6
 ruby_version          = "latest" # Choose what ruby version should be installed (will also be the default version)
 ruby_gems             = [        # List any Ruby Gems that you want to install
@@ -57,6 +57,7 @@ hhvm                  = "false"
 
 # PHP Options
 composer_packages     = [        # List any global Composer packages that you want to install
+  "drush/drush:dev-master"
   #"phpunit/phpunit:4.0.*",
   #"codeception/codeception=*",
   #"phpspec/phpspec:2.0.*@dev",
