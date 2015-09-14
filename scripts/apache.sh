@@ -16,7 +16,7 @@ echo ">>> Installing Apache Server"
 [[ -z $1 ]] && { echo "!!! IP address not set. Check the Vagrant file."; exit 1; }
 
 if [[ -z $2 ]]; then
-    public_folder="/vagrant"
+    public_folder="/var/www/"
 else
     public_folder="$2"
 fi
@@ -56,7 +56,7 @@ sudo chmod guo+x vhost
 sudo mv vhost /usr/local/bin
 
 # Create a virtualhost to start, with SSL certificate
-sudo vhost -s $1.xip.io -d $public_folder -p /etc/ssl/xip.io -c xip.io -a $3
+# sudo vhost -s $1.xip.io -p /etc/ssl/xip.io -c xip.io -a $3
 sudo a2dissite 000-default
 
 # If PHP is installed or HHVM is installed, proxy PHP requests to it

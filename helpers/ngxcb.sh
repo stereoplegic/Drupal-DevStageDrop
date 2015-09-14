@@ -10,9 +10,9 @@ Assumes /etc/nginx/sites-available and /etc/nginx/sites-enabled setup used.
 
     -f    Force ngxcb to overwrite given server block file name
     -e    Enable the Server Block right away with NGXEN - i.e -e (without any value)
-    -d    DocumentRoot - i.e. -d /vagrant/yoursite
+    #-d    DocumentRoot - i.e. -d /vagrant/yoursite
     -h    Help - Show this menu.
-    -n    The Server Block file name - default: vagrant - i.e. -n yoursite
+    #-n    The Server Block file name - default: vagrant - i.e. -n yoursite
     -s    ServerName - i.e. -s yoursite.com
 
 EOF
@@ -226,13 +226,13 @@ EOF
 }
 
 # Check if there are enough arguments provided (2 arguments and there 2 values)
-if [[ $# -lt 4 ]]; then
+if [[ $# -lt 2 ]]; then
     echo "!!! Not enough arguments. Please read the below for NGXCB useage:"
     show_usage
 fi
 
 # The default for the optional argument's:
-ServerBlockName="vagrant"
+#ServerBlockName="vagrant"
 EnableServerBlock=0
 NeedsReload=0
 ForceOverwrite=0
@@ -246,15 +246,15 @@ while getopts ":hd:s:n::ef" OPTION; do
         h)
             show_usage
             ;;
-        d)
-            DocumentRoot=$OPTARG
-            ;;
+        #d)
+         #   DocumentRoot=$OPTARG
+          #  ;;
         s)
             ServerName=$OPTARG
             ;;
-        n)
-            ServerBlockName=$OPTARG
-            ;;
+        #n)
+         #   ServerBlockName=$OPTARG
+          #  ;;
         e)
             EnableServerBlock=1
             ;;
@@ -266,6 +266,9 @@ while getopts ":hd:s:n::ef" OPTION; do
             ;;
     esac
 done
+
+DocumentRoot=/var/www/$ServerName
+ServerBlockName=$ServerName
 
 if [[ ! -d $DocumentRoot ]]; then
     mkdir -p $DocumentRoot

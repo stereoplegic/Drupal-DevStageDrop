@@ -3,6 +3,10 @@
 # Run this as sudo!
 # I move this file to /usr/local/bin/vhost and run command 'vhost' from anywhere, using sudo.
 
+# Test if Nginx is installed
+nginx -v > /dev/null 2>&1
+NGINX_IS_INSTALLED=$?
+
 #
 #   Show Usage, Output to STDERR
 #
@@ -12,7 +16,7 @@ cat <<- _EOF_
 Create a new vHost in Ubuntu Server
 Assumes /etc/apache2/sites-available and /etc/apache2/sites-enabled setup used
 
-    -d    DocumentRoot - i.e. /var/www/yoursite
+    # -d    DocumentRoot - i.e. /var/www/yoursite
     -h    Help - Show this menu.
     -s    ServerName - i.e. example.com or sub.example.com
     -a    ServerAlias - i.e. *.example.com or another domain altogether
@@ -119,8 +123,8 @@ cat <<- _EOF_
 _EOF_
 }
 
-#Sanity Check - are there two arguments with 2 values?
-if [ "$#" -lt 4 ]; then
+#Sanity Check - are there one or more arguments with corresponding values?
+if [ "$#" -lt 2 ]; then
     show_usage
 fi
 
@@ -131,9 +135,6 @@ while getopts "d:s:a:p:c:h" OPTION; do
     case $OPTION in
         h)
             show_usage
-            ;;
-        d)
-            DocumentRoot=$OPTARG
             ;;
         s)
             ServerName=$OPTARG
@@ -160,6 +161,8 @@ else
     ServerAlias=""
 fi
 
+DocumentRoot=/var/www/$ServerName
+
 # If CertName doesn't get set, set it to ServerName
 if [ "$CertName" == "" ]; then
     CertName=$ServerName
@@ -184,4 +187,9 @@ else
     # Enable Site
     cd /etc/apache2/sites-available/ && a2ensite ${ServerName}.conf
     service apache2 reload
+
+    # Create and Enable Nginx Server Block (if Nginx is installed)
+    if [[ $NGINX_IS_INSTALLED -eq 0 ]]; then
+        ngxcb -s $ServerName -e
+    fi
 fi

@@ -53,7 +53,7 @@ sed -i 's/sendfile on;/sendfile off;/' /etc/nginx/nginx.conf
 
 # Set run-as user for PHP5-FPM processes to user/group "vagrant"
 # to avoid permission errors from apps writing to files
-sed -i "s/user www-data;/user vagrant;/" /etc/nginx/nginx.conf
+# sed -i "s/user www-data;/user vagrant;/" /etc/nginx/nginx.conf
 sed -i "s/# server_names_hash_bucket_size.*/server_names_hash_bucket_size 64;/" /etc/nginx/nginx.conf
 
 # Add vagrant user to www-data group
@@ -74,7 +74,7 @@ if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
 fi
 
 # Create Nginx Server Block named "vagrant" and enable it
-sudo ngxcb -d $public_folder -s "$1.xip.io$hostname" -e
+#sudo ngxcb -d $public_folder -s "$1.xip.io$hostname" -e
 
 # Disable "default"
 sudo ngxdis default
