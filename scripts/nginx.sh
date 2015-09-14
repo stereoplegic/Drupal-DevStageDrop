@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Test if Apache is installed
+apache2 -v > /dev/null 2>&1
+APACHE_IS_INSTALLED=$?
+
 # Test if PHP is installed
 php -v > /dev/null 2>&1
 PHP_IS_INSTALLED=$?
@@ -29,7 +33,7 @@ else
 fi
 
 if [[ -z $4 ]]; then
-    github_url="https://raw.githubusercontent.com/fideloper/Vaprobash/master"
+    github_url="https://raw.githubusercontent.com/stereoplegic/Vaprobash/master"
 else
     github_url="$4"
 fi
@@ -61,6 +65,13 @@ curl --silent -L $github_url/helpers/ngxdis.sh > ngxdis
 curl --silent -L $github_url/helpers/ngxcb.sh > ngxcb
 sudo chmod guo+x ngxen ngxdis ngxcb
 sudo mv ngxen ngxdis ngxcb /usr/local/bin
+
+if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
+    # Apache Config for Nginx
+    sed -i "s/Listen\s80/Listen\s81/" /etc/apache2/ports.conf
+    sed -i "s/Listen\s443/Listen\s4433/g" /etc/apache2/ports.conf
+    sudo service apache2 restart
+fi
 
 # Create Nginx Server Block named "vagrant" and enable it
 sudo ngxcb -d $public_folder -s "$1.xip.io$hostname" -e

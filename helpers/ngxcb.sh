@@ -27,6 +27,10 @@ fi
 # Output Nginx Server Block Config
 function create_server_block {
 
+    # Test if Apache is installed
+    apache2 -v > /dev/null 2>&1
+    APACHE_IS_INSTALLED=$?
+
     # Test if PHP is installed
     php -v > /dev/null 2>&1
     PHP_IS_INSTALLED=$?
@@ -40,7 +44,13 @@ function create_server_block {
     PHP_NO_SSL=""
     PHP_WITH_SSL=""
 
-    if [[ $PHP_IS_INSTALLED -eq 0 ]]; then
+    if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
+
+
+
+    else
+
+        if [[ $PHP_IS_INSTALLED -eq 0 ]]; then
 
 # Nginx Server Block config for PHP (without using SSL)
 read -d '' PHP_NO_SSL <<EOF
@@ -77,9 +87,9 @@ read -d '' PHP_WITH_SSL <<EOF
             fastcgi_param HTTPS on;
         }
 EOF
-    fi
+        fi
 
-    if [[ $HHVM_IS_INSTALLED -eq 0 ]]; then
+        if [[ $HHVM_IS_INSTALLED -eq 0 ]]; then
 
 # Nginx Server Block config for HHVM (without using SSL)
 read -d '' PHP_NO_SSL <<EOF
@@ -114,6 +124,7 @@ read -d '' PHP_WITH_SSL <<EOF
             fastcgi_param HTTPS on;
         }
 EOF
+        fi
     fi
 
 # Main Nginx Server Block Config
@@ -132,9 +143,23 @@ cat <<EOF
 
         charset utf-8;
 
+        if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
+
+        location / {
+            proxy_pass http://127.0.0.1:81;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        else
+
         location / {
             try_files \$uri \$uri/ /app.php?\$query_string /index.php?\$query_string;
         }
+
+        fi
 
         location = /favicon.ico { log_not_found off; access_log off; }
         location = /robots.txt  { access_log off; log_not_found off; }
@@ -167,9 +192,23 @@ cat <<EOF
 
         charset utf-8;
 
+        if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
+
+        location / {
+            proxy_pass http://127.0.0.1:81;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        else
+
         location / {
             try_files \$uri \$uri/ /app.php?\$query_string /index.php?\$query_string;
         }
+
+        fi
 
         location = /favicon.ico { log_not_found off; access_log off; }
         location = /robots.txt  { access_log off; log_not_found off; }
@@ -236,7 +275,7 @@ if [[ $ForceOverwrite -eq 1 ]]; then
     # remove symlink from sites-enabled directory
     rm -f "/etc/nginx/sites-enabled/${ServerBlockName}" &>/dev/null
     if [[ $? -eq 0 ]]; then
-        # if file has been removed, provide user with information that existing server 
+        # if file has been removed, provide user with information that existing server
         # block is being overwritten
         echo ">>> ${ServerBlockName} is enabled and will be overwritten"
         echo ">>> to enable this server block execute 'ngxen ${ServerBlockName}' or use the -e flag"

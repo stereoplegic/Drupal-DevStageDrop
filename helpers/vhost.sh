@@ -39,7 +39,7 @@ exit 1
 #
 function create_vhost {
 cat <<- _EOF_
-<VirtualHost *:80>
+<VirtualHost *:81>
     ServerAdmin webmaster@localhost
     ServerName $ServerName
     $ServerAlias
@@ -74,7 +74,7 @@ _EOF_
 
 function create_ssl_vhost {
 cat <<- _EOF_
-<VirtualHost *:443>
+<VirtualHost *:4433>
     ServerAdmin webmaster@localhost
     ServerName $ServerName
     $ServerAlias
