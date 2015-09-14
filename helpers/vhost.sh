@@ -30,7 +30,7 @@ Assumes /etc/apache2/sites-available and /etc/apache2/sites-enabled setup used
 
     Example Usage. Serve files from /var/www/xip.io at http(s)://192.168.33.10.xip.io
                    using ssl files from /etc/ssl/xip.io/xip.io.[key|crt]
-    sudo vhost -d /var/www/xip.io -s 192.168.33.10.xip.io -p /etc/ssl/xip.io -c xip.io
+    sudo vhost -s 192.168.33.10.xip.io -p /etc/ssl/xip.io -c xip.io
 
 _EOF_
 exit 1
@@ -124,7 +124,7 @@ _EOF_
 }
 
 #Sanity Check - are there one or more arguments with corresponding values?
-if [ "$#" -lt 2 ]; then
+if [ "$#" -lt 1 ]; then
     show_usage
 fi
 
