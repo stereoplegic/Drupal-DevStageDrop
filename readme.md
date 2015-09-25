@@ -1,5 +1,7 @@
 # Vaprobash
 
+***This is my fork of [Fideveloper](https://github.com/fideloper "Fideveloper")'s Vaprobash collection of Vagrant box and Bash provisioning scripts, modified to provide a LAMP server with an Nginx front end reverse proxy server.***
+
 **Va**&#x200B;grant **Pro**&#x200B;visioning **Bash** Scripts
 
 [View the site and extended docs.](http://fideloper.github.io/Vaprobash/index.html)
