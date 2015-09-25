@@ -5,7 +5,9 @@
 github_username = "stereoplegic"
 github_repo     = "Vaprobash"
 github_branch   = "1.4.1"
-github_url      = "https://raw.githubusercontent.com/#{github_username}/#{github_repo}/#{github_branch}"
+#github_url      = "https://raw.githubusercontent.com/#{github_username}/#{github_repo}/#{github_branch}"
+# Why not just get scripts from local repo?
+github_url      = "."
 
 # Because this:https://developer.github.com/changes/2014-12-08-removing-authorizations-token/
 # https://github.com/settings/tokens
@@ -61,13 +63,16 @@ composer_packages     = [        # List any global Composer packages that you wa
   "phpunit/phpunit:4.0.*",
   #"codeception/codeception=*",
   #"phpspec/phpspec:2.0.*@dev",
-  #"squizlabs/php_codesniffer:1.5.*",
+  "squizlabs/php_codesniffer:1.5.*",
 ]
+
+# Default shared folder
+public_folder         = "/vagrant"
 
 # Default web server document root
 # Symfony's public directory is assumed "web"
 # Laravel's public directory is assumed "public"
-public_folder         = "/vagrant"
+www_folder            = "/var/www"
 
 laravel_root_folder   = "/vagrant/laravel" # Where to install Laravel. Will `composer install` if a composer.json file exists
 laravel_version       = "latest-stable" # If you need a specific version of Laravel, set it here
@@ -96,11 +101,20 @@ Vagrant.configure("2") do |config|
   config.vm.define "Vaprobash" do |vapro|
   end
 
-  if Vagrant.has_plugin?("vagrant-hostmanager")
-    config.hostmanager.enabled = true
-    config.hostmanager.manage_host = true
-    config.hostmanager.ignore_private_ip = false
-    config.hostmanager.include_offline = false
+  #if Vagrant.has_plugin?("vagrant-hostmanager")
+    #config.hostmanager.enabled = true
+    #config.hostmanager.manage_host = true
+    #config.hostmanager.ignore_private_ip = false
+    #config.hostmanager.include_offline = false
+  #end
+
+  # Depends on vagrant-hostsupdater plugin, available via command:
+  # vagrant plugin install vagrant-hostsupdater
+  if Vagrant.has_plugin?("vagrant-hostsupdater")
+    config.vm.network :private_network, ip: "192.168.3.10"
+    config.vm.hostname = "sp1local.saverhost.com"
+    config.hostsupdater.aliases = ["euphoriemassage.com" , "mikebybee.com" , "enlightencoffee.com"
+    ]
   end
 
   # Create a hostname, don't forget to put it to the `hosts` file
@@ -116,6 +130,7 @@ Vagrant.configure("2") do |config|
   config.ssh.forward_agent = true
 
   # Use NFS for the shared folder
+  config.vm.synced_folder "../www", "/var/www", :create=> "true"
   config.vm.synced_folder ".", "/vagrant",
             id: "core"
             # :nfs => true,
@@ -159,16 +174,16 @@ Vagrant.configure("2") do |config|
 
   # If using Vagrant-Cachier
   # http://fgrehm.viewdocs.io/vagrant-cachier
-  if Vagrant.has_plugin?("vagrant-cachier")
+  #if Vagrant.has_plugin?("vagrant-cachier")
     # Configure cached packages to be shared between instances of the same base box.
     # Usage docs: http://fgrehm.viewdocs.io/vagrant-cachier/usage
-    config.cache.scope = :box
+    #config.cache.scope = :box
 
-    config.cache.synced_folder_opts = {
+    #config.cache.synced_folder_opts = {
         # type: :nfs,
         # mount_options: ['rw', 'vers=3', 'tcp', 'nolock']
-    }
-  end
+    #}
+  #end
 
   # Adding vagrant-digitalocean provider - https://github.com/smdahlen/vagrant-digitalocean
   # Needs to ensure that the vagrant plugin is installed
@@ -211,10 +226,10 @@ Vagrant.configure("2") do |config|
   ##########
 
   # Provision Apache Base
-  config.vm.provision "shell", path: "#{github_url}/scripts/apache.sh", args: [server_ip, public_folder, hostname, github_url]
+  config.vm.provision "shell", path: "#{github_url}/scripts/apache.sh", args: [server_ip, www_folder, hostname, github_url]
 
   # Provision Nginx Base
-  config.vm.provision "shell", path: "#{github_url}/scripts/nginx.sh", args: [server_ip, public_folder, hostname, github_url]
+  config.vm.provision "shell", path: "#{github_url}/scripts/nginx.sh", args: [server_ip, www_folder, hostname, github_url]
 
 
   ####
@@ -253,7 +268,7 @@ Vagrant.configure("2") do |config|
   ##########
 
   # Install Elasticsearch
-  config.vm.provision "shell", path: "#{github_url}/scripts/elasticsearch.sh"
+  # config.vm.provision "shell", path: "#{github_url}/scripts/elasticsearch.sh"
 
   # Install SphinxSearch
   # config.vm.provision "shell", path: "#{github_url}/scripts/sphinxsearch.sh", args: [sphinxsearch_version]
@@ -307,10 +322,10 @@ Vagrant.configure("2") do |config|
   ##########
 
   # Install Nodejs
-  config.vm.provision "shell", path: "#{github_url}/scripts/nodejs.sh", privileged: false, args: nodejs_packages.unshift(nodejs_version, github_url)
+  # config.vm.provision "shell", path: "#{github_url}/scripts/nodejs.sh", privileged: false, args: nodejs_packages.unshift(nodejs_version, github_url)
 
   # Install Ruby Version Manager (RVM)
-  config.vm.provision "shell", path: "#{github_url}/scripts/rvm.sh", privileged: false, args: ruby_gems.unshift(ruby_version)
+  # config.vm.provision "shell", path: "#{github_url}/scripts/rvm.sh", privileged: false, args: ruby_gems.unshift(ruby_version)
 
   # Install Go Version Manager (GVM)
   # config.vm.provision "shell", path: "#{github_url}/scripts/go.sh", privileged: false, args: [go_version]
@@ -324,10 +339,10 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", path: "#{github_url}/scripts/composer.sh", privileged: false, args: ["", composer_packages.join(" ")]
 
   # Provision Laravel
-  # config.vm.provision "shell", path: "#{github_url}/scripts/laravel.sh", privileged: false, args: [server_ip, laravel_root_folder, public_folder, laravel_version]
+  # config.vm.provision "shell", path: "#{github_url}/scripts/laravel.sh", privileged: false, args: [server_ip, laravel_root_folder, www_folder, laravel_version]
 
   # Provision Symfony
-  # config.vm.provision "shell", path: "#{github_url}/scripts/symfony.sh", privileged: false, args: [server_ip, symfony_root_folder, public_folder]
+  # config.vm.provision "shell", path: "#{github_url}/scripts/symfony.sh", privileged: false, args: [server_ip, symfony_root_folder, www_folder]
 
   # Install Screen
   # config.vm.provision "shell", path: "#{github_url}/scripts/screen.sh"

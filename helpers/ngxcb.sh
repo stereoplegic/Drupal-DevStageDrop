@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+WebRoot=/var/www
+
 # Show the usage for NGXCB
 function show_usage {
 cat <<EOF
@@ -8,19 +10,19 @@ NGXCB:
 Create a new Nginx Server Block (Ubuntu Server).
 Assumes /etc/nginx/sites-available and /etc/nginx/sites-enabled setup used.
 
-    -f    Force ngxcb to overwrite given server block file name
-    -e    Enable the Server Block right away with NGXEN - i.e -e (without any value)
-    #-d    DocumentRoot - i.e. -d /vagrant/yoursite
+    -f    Optional - Force ngxcb to overwrite given server block file name
+    -e    Optional - Enable the Server Block right away with NGXEN - i.e "-e" (without any value)
+    -d    DocumentRoot - subfolder of $WebRoot - i.e. "-d yoursite" $WebRoot/yoursite - Optional: defaults to ServerName (-s switch)
     -h    Help - Show this menu.
-    #-n    The Server Block file name - default: vagrant - i.e. -n yoursite
-    -s    ServerName - i.e. -s yoursite.com
+    -n    The Server Block file name - i.e. "-n yoursite" - Optional: Defaults to DocumentRoot (-d switch), or ServerName (-s) if -d switch not set
+    -s    ServerName (Required) - i.e. "-s yoursite.com"
 
 EOF
 exit 1
 }
 
 if [ $EUID -ne 0 ]; then
-    echo "!!! Please use root: \"sudo NGXCB\""
+    echo "!!! Please use root: \"sudo ngxcb\""
     show_usage
 fi
 
@@ -40,15 +42,49 @@ function create_server_block {
     HHVM_IS_INSTALLED=$?
     [[ $HHVM_IS_INSTALLED -eq 0 ]] && { PHP_IS_INSTALLED=-1; }
 
-    # Default empty PHP Config
-    PHP_NO_SSL=""
-    PHP_WITH_SSL=""
+    # Default empty Nginx Root Directive
+    NGINX_ROOT_DIR_NO_SSL=""
+    NGINX_ROOT_DIR_WITH_SSL=""
 
     if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
 
+read -d '' NGINX_ROOT_DIR_NO_SSL <<EOF
+        location / {
+            proxy_pass http://127.0.0.1:81;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+        }
+EOF
 
+read -d '' NGINX_ROOT_DIR_WITH_SSL <<EOF
+        location / {
+            proxy_pass http://127.0.0.1:4433;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+        }
+EOF
+
+        # Default empty PHP Config
+        PHP_NO_SSL=""
+        PHP_WITH_SSL=""
 
     else
+
+read -d '' NGINX_ROOT_DIR_NO_SSL <<EOF
+        location / {
+            try_files \$uri \$uri/ /app.php?\$query_string /index.php?\$query_string;
+        }
+EOF
+
+read -d '' NGINX_ROOT_DIR_WITH_SSL <<EOF
+        location / {
+            try_files \$uri \$uri/ /app.php?\$query_string /index.php?\$query_string;
+        }
+EOF
 
         if [[ $PHP_IS_INSTALLED -eq 0 ]]; then
 
@@ -132,7 +168,7 @@ cat <<EOF
     server {
         listen 80;
 
-        root $DocumentRoot;
+        root $WebRoot/$DocumentRoot;
         index index.html index.htm index.php app.php app_dev.php;
 
         # Make site accessible from ...
@@ -143,23 +179,7 @@ cat <<EOF
 
         charset utf-8;
 
-        if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
-
-        location / {
-            proxy_pass http://127.0.0.1:81;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        else
-
-        location / {
-            try_files \$uri \$uri/ /app.php?\$query_string /index.php?\$query_string;
-        }
-
-        fi
+        $NGINX_ROOT_DIR_NO_SSL
 
         location = /favicon.ico { log_not_found off; access_log off; }
         location = /robots.txt  { access_log off; log_not_found off; }
@@ -181,7 +201,7 @@ cat <<EOF
         ssl_certificate     /etc/ssl/xip.io/xip.io.crt;
         ssl_certificate_key /etc/ssl/xip.io/xip.io.key;
 
-        root $DocumentRoot;
+        root $WebRoot/$DocumentRoot;
         index index.html index.htm index.php app.php app_dev.php;
 
         # Make site accessible from ...
@@ -192,23 +212,7 @@ cat <<EOF
 
         charset utf-8;
 
-        if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
-
-        location / {
-            proxy_pass http://127.0.0.1:81;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        else
-
-        location / {
-            try_files \$uri \$uri/ /app.php?\$query_string /index.php?\$query_string;
-        }
-
-        fi
+        $NGINX_ROOT_DIR_WITH_SSL
 
         location = /favicon.ico { log_not_found off; access_log off; }
         location = /robots.txt  { access_log off; log_not_found off; }
@@ -246,15 +250,15 @@ while getopts ":hd:s:n::ef" OPTION; do
         h)
             show_usage
             ;;
-        #d)
-         #   DocumentRoot=$OPTARG
-          #  ;;
+        d)
+            DocumentRoot=$OPTARG
+            ;;
         s)
             ServerName=$OPTARG
             ;;
-        #n)
-         #   ServerBlockName=$OPTARG
-          #  ;;
+        n)
+            ServerBlockName=$OPTARG
+            ;;
         e)
             EnableServerBlock=1
             ;;
@@ -267,11 +271,22 @@ while getopts ":hd:s:n::ef" OPTION; do
     esac
 done
 
-DocumentRoot=/var/www/$ServerName
-ServerBlockName=$ServerName
+if [[ "$ServerName" == "" ]]; then
+    echo "ERROR: Option -s required with an argument." >&2
+    show_usage
+    exit 1
+fi
 
-if [[ ! -d $DocumentRoot ]]; then
-    mkdir -p $DocumentRoot
+if [ "$DocumentRoot" == "" ]; then
+    DocumentRoot=$ServerName
+fi
+
+if [ "$ServerBlockName" == "" ]; then
+    ServerBlockName=$DocumentRoot
+fi
+
+if [[ ! -d $WebRoot/$DocumentRoot ]]; then
+    mkdir -p $WebRoot/$DocumentRoot
 fi
 
 if [[ $ForceOverwrite -eq 1 ]]; then

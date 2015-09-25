@@ -20,9 +20,9 @@ echo ">>> Installing Nginx"
 [[ -z $1 ]] && { echo "!!! IP address not set. Check the Vagrant file."; exit 1; }
 
 if [[ -z $2 ]]; then
-    public_folder="/vagrant"
+    www_folder="/var/www"
 else
-    public_folder="$2"
+    www_folder="$2"
 fi
 
 if [[ -z $3 ]]; then
@@ -60,21 +60,27 @@ sed -i "s/# server_names_hash_bucket_size.*/server_names_hash_bucket_size 64;/" 
 usermod -a -G www-data vagrant
 
 # Nginx enabling and disabling virtual hosts
-curl --silent -L $github_url/helpers/ngxen.sh > ngxen
-curl --silent -L $github_url/helpers/ngxdis.sh > ngxdis
-curl --silent -L $github_url/helpers/ngxcb.sh > ngxcb
-sudo chmod guo+x ngxen ngxdis ngxcb
-sudo mv ngxen ngxdis ngxcb /usr/local/bin
+#curl --silent -L $github_url/helpers/ngxen.sh > ngxen
+#curl --silent -L $github_url/helpers/ngxdis.sh > ngxdis
+#curl --silent -L $github_url/helpers/ngxcb.sh > ngxcb
+#sudo chmod guo+x ngxen ngxdis ngxcb
+#sudo mv ngxen ngxdis ngxcb /usr/local/bin
+sudo cp /vagrant/helpers/ngxen.sh /usr/local/bin/ngxen
+sudo chmod guo+x /usr/local/bin/ngxen
+sudo cp /vagrant/helpers/ngxdis.sh /usr/local/bin/ngxdis
+sudo chmod guo+x /usr/local/bin/ngxdis
+sudo cp /vagrant/helpers/ngxcb.sh /usr/local/bin/ngxcb
+sudo chmod guo+x /usr/local/bin/ngxcb
 
 if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
     # Apache Config for Nginx
-    sed -i "s/Listen\s80/Listen\s81/" /etc/apache2/ports.conf
-    sed -i "s/Listen\s443/Listen\s4433/g" /etc/apache2/ports.conf
+    sed -i "s/Listen\s80/Listen 81/" /etc/apache2/ports.conf
+    sed -i "s/Listen\s443/Listen 4433/g" /etc/apache2/ports.conf
     sudo service apache2 restart
 fi
 
 # Create Nginx Server Block named "vagrant" and enable it
-#sudo ngxcb -d $public_folder -s "$1.xip.io$hostname" -e
+#sudo ngxcb -d $www_folder -s "$1.xip.io$hostname" -e
 
 # Disable "default"
 sudo ngxdis default

@@ -16,9 +16,9 @@ echo ">>> Installing Apache Server"
 [[ -z $1 ]] && { echo "!!! IP address not set. Check the Vagrant file."; exit 1; }
 
 if [[ -z $2 ]]; then
-    public_folder="/var/www/"
+    www_folder="/var/www/"
 else
-    public_folder="$2"
+    www_folder="$2"
 fi
 
 if [[ -z $4 ]]; then
@@ -51,9 +51,11 @@ sudo usermod -a -G www-data vagrant
 sudo a2dismod mpm_prefork mpm_worker
 sudo a2dismod php5
 sudo a2enmod rewrite actions ssl
-curl --silent -L $github_url/helpers/vhost.sh > vhost
-sudo chmod guo+x vhost
-sudo mv vhost /usr/local/bin
+#curl --silent -L $github_url/helpers/vhost.sh > vhost
+#sudo chmod guo+x vhost
+#sudo mv vhost /usr/local/bin
+sudo cp /vagrant/helpers/vhost.sh /usr/local/bin/vhost
+sudo chmod guo+x /usr/local/bin/vhost
 
 # Create a virtualhost to start, with SSL certificate
 # sudo vhost -s $1.xip.io -p /etc/ssl/xip.io -c xip.io -a $3
