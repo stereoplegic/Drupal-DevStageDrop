@@ -22,7 +22,7 @@ vhost -s example.com -a "anotherexample.com yet.another.example.com"
 
 [View the site and extended docs.](http://fideloper.github.io/Vaprobash/index.html)
 
-[![Build Status](https://travis-ci.org/fideloper/Vaprobash.png?branch=master)](https://travis-ci.org/fideloper/Vaprobash)
+[![Build Status](https://travis-ci.org/stereoplegic/Vaprobash.svg?branch=master)](https://travis-ci.org/stereoplegic/Vaprobash)
 
 ## Goal
 
