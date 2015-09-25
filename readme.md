@@ -9,7 +9,7 @@ vhost -s example.com
 ```
 <br>
 
-This will create (by default) /etc/apache2/sites-available/example.com.conf and /etc/nginx/sites-available/example.com, as well as the /var/www/example.com/ docroot directory (assumes that the config file names and docroot are the same unless the -d switch is given with an argument).
+This will create (by default) /etc/apache2/sites-available/example.com.conf and /etc/nginx/sites-available/example.com, as well as the /var/www/example.com/ docroot directory (assumes that the config file names and docroot are the same as the URL unless the -d switch is given with an argument).
 
 You can add multiple ServerAlias URLs (added as additional URLs to Nginx server\_name directive) by specifying the -a switch, with URL argument in quotes if using more than one URL:
 
