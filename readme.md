@@ -97,7 +97,7 @@ Here's a quickstart screencast!
 * Web Servers
 	* Apache
 	* HHVM
-	* Nginx
+	* Nginx (standalone or as frontend reverse proxy to Apache)
 * Databases
 	* Couchbase
 	* CouchDB
