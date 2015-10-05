@@ -113,8 +113,8 @@ Vagrant.configure("2") do |config|
   if Vagrant.has_plugin?("vagrant-hostsupdater")
     config.vm.network :private_network, ip: "192.168.3.10"
     config.vm.hostname = "sp1local.saverhost.com"
-    config.hostsupdater.aliases = ["euphoriemassage.com" , "mikebybee.com" , "enlightencoffee.com"
-    ]
+    config.hostsupdater.aliases = ["euphoriemassage.com" , "mikebybee.com" , "enlightencoffee.com" , "dev.briefmedia.com", "dev.briefmedia.support" , "dev.cbrief.net" , "dev.digitalbrief.net" , "dev.tbrief.net" , "dev.vbrief.net" , "dev.vetrx.co"
+  ]
   end
 
   # Create a hostname, don't forget to put it to the `hosts` file
@@ -196,7 +196,7 @@ Vagrant.configure("2") do |config|
     provider.token = 'YOUR TOKEN'
     provider.image = 'ubuntu-14-04-x64'
     provider.region = 'nyc2'
-    provider.size = '512mb'
+    provider.size = '1024mb'
   end
 
   ####
@@ -365,5 +365,10 @@ Vagrant.configure("2") do |config|
   # Add these to the same directory as the Vagrantfile.
   ##########
   # config.vm.provision "shell", path: "./local-script.sh"
+  config.vm.provision "shell", path: "../scripts/vhosts/briefmedia.sh"
+  config.vm.provision "shell", path: "../scripts/vhosts/enlightencoffee.sh"
+  config.vm.provision "shell", path: "../scripts/vhosts/euphoriemassage.sh"
+  config.vm.provision "shell", path: "../scripts/vhosts/iqdecoration.sh"
+  config.vm.provision "shell", path: "../scripts/vhosts/mikebybee.sh"
 
 end

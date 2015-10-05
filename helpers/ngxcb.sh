@@ -282,7 +282,7 @@ if [ "$DocumentRoot" == "" ]; then
 fi
 
 if [ "$ServerBlockName" == "" ]; then
-    ServerBlockName=$DocumentRoot
+    ServerBlockName=$ServerName
 fi
 
 if [[ ! -d $WebRoot/$DocumentRoot ]]; then

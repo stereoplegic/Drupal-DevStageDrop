@@ -196,23 +196,23 @@ if [ ! -d $WebRoot/$DocumentRoot ]; then
     #chown USER:USER $WebRoot/$DocumentRoot #POSSIBLE IMPLEMENTATION, new flag -u ?
 fi
 
-if [ -f "$WebRoot/$DocumentRoot/$DocumentRoot.conf" ]; then
+if [ -f "$WebRoot/$DocumentRoot/$ServerName.conf" ]; then
     echo 'vHost already exists. Aborting'
     show_usage
 else
-    create_vhost > /etc/apache2/sites-available/${DocumentRoot}.conf
+    create_vhost > /etc/apache2/sites-available/${ServerName}.conf
 
     # Add :443 handling
     if [ "$CertPath" != "" ]; then
-        create_ssl_vhost >> /etc/apache2/sites-available/${DocumentRoot}.conf
+        create_ssl_vhost >> /etc/apache2/sites-available/${ServerName}.conf
     fi
 
     # Enable Site
-    cd /etc/apache2/sites-available/ && a2ensite ${DocumentRoot}.conf
+    cd /etc/apache2/sites-available/ && a2ensite ${ServerName}.conf
     service apache2 reload
 
     # Create and Enable Nginx Server Block (if Nginx is installed)
     if [[ $NGINX_IS_INSTALLED -eq 0 ]]; then
-        ngxcb -e -s "$ServerName $Alias" -d $DocumentRoot
+        ngxcb -e -s "$ServerName $Alias" -d $DocumentRoot -n $ServerName
     fi
 fi
