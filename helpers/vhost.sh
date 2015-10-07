@@ -59,7 +59,7 @@ cat <<- _EOF_
     DocumentRoot $WebRoot/$DocumentRoot
 
 
-    <Directory $DocumentRoot>
+    <Directory $WebRoot/$DocumentRoot>
         Options -Indexes +FollowSymLinks +MultiViews
         AllowOverride All
         Require all granted

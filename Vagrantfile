@@ -130,6 +130,7 @@ Vagrant.configure("2") do |config|
   config.ssh.forward_agent = true
 
   # Use NFS for the shared folder
+  config.vm.synced_folder "../briefmedia", "/briefmedia", :create=> "true"
   config.vm.synced_folder "../www", "/var/www", :create=> "true"
   config.vm.synced_folder ".", "/vagrant",
             id: "core"
@@ -370,5 +371,6 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", path: "../scripts/vhosts/euphoriemassage.sh"
   config.vm.provision "shell", path: "../scripts/vhosts/iqdecoration.sh"
   config.vm.provision "shell", path: "../scripts/vhosts/mikebybee.sh"
+  # config.vm.provision "shell", path: "../scripts/vhosts/siliconexpert.sh"
 
 end
