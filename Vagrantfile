@@ -113,7 +113,7 @@ Vagrant.configure("2") do |config|
   if Vagrant.has_plugin?("vagrant-hostsupdater")
     config.vm.network :private_network, ip: "192.168.3.10"
     config.vm.hostname = "sp1local.saverhost.com"
-    config.hostsupdater.aliases = ["euphoriemassage.com" , "mikebybee.com" , "enlightencoffee.com" , "dev.briefmedia.com", "dev.briefmedia.support" , "dev.cbrief.net" , "dev.digitalbrief.net" , "dev.tbrief.net" , "dev.vbrief.net" , "dev.vetrx.co"
+    config.hostsupdater.aliases = ["iqdecoration.com" , "iqdecorating.com" , "euphoriemassage.com" , "mikebybee.com" , "enlightencoffee.com" , "kb.parallelpublicworks.local"
   ]
   end
 
@@ -130,7 +130,7 @@ Vagrant.configure("2") do |config|
   config.ssh.forward_agent = true
 
   # Use NFS for the shared folder
-  config.vm.synced_folder "../briefmedia", "/briefmedia", :create=> "true"
+  config.vm.synced_folder "../../Projects", "/projects", :create=> "true"
   config.vm.synced_folder "../www", "/var/www", :create=> "true"
   config.vm.synced_folder ".", "/vagrant",
             id: "core"
@@ -366,11 +366,10 @@ Vagrant.configure("2") do |config|
   # Add these to the same directory as the Vagrantfile.
   ##########
   # config.vm.provision "shell", path: "./local-script.sh"
-  config.vm.provision "shell", path: "../scripts/vhosts/briefmedia.sh"
   config.vm.provision "shell", path: "../scripts/vhosts/enlightencoffee.sh"
   config.vm.provision "shell", path: "../scripts/vhosts/euphoriemassage.sh"
   config.vm.provision "shell", path: "../scripts/vhosts/iqdecoration.sh"
   config.vm.provision "shell", path: "../scripts/vhosts/mikebybee.sh"
-  # config.vm.provision "shell", path: "../scripts/vhosts/siliconexpert.sh"
+  config.vm.provision "shell", path: "../scripts/vhosts/kb.parallelpublicworks.sh", args: [mysql_root_password]
 
 end

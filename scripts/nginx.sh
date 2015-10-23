@@ -75,7 +75,7 @@ sudo chmod guo+x /usr/local/bin/ngxcb
 if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
     # Apache Config for Nginx
     sed -i "s/Listen\s80/Listen 81/" /etc/apache2/ports.conf
-    sed -i "s/Listen\s443\n/Listen 4433\n/g" /etc/apache2/ports.conf
+    sed -i "s/443/4543/g" /etc/apache2/ports.conf
     sudo service apache2 restart
 fi
 

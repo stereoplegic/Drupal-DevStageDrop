@@ -87,7 +87,7 @@ _EOF_
 function create_ssl_vhost {
 cat <<- _EOF_
 if [[ $NGINX_IS_INSTALLED -eq 0 ]]; then
-<VirtualHost *:4433>
+<VirtualHost *:4543>
 else
 <VirtualHost *:443>
 fi
@@ -213,6 +213,6 @@ else
 
     # Create and Enable Nginx Server Block (if Nginx is installed)
     if [[ $NGINX_IS_INSTALLED -eq 0 ]]; then
-        ngxcb -e -s "$ServerName $Alias" -d $DocumentRoot -n $ServerName
+        ngxcb -e -d $DocumentRoot -n $ServerName -s "$ServerName $Alias"
     fi
 fi
