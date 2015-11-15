@@ -133,15 +133,9 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder "../../Projects", "/projects", :create=> "true"
   config.vm.synced_folder "../www", "/var/www", :create=> "true"
   config.vm.synced_folder ".", "/vagrant",
-<<<<<<< HEAD
-            id: "core",
-            :nfs => true,
-            :mount_options => ['nolock,vers=3,udp,noatime,actimeo=2']
-=======
             id: "core"
             # :nfs => true,
-            # :mount_options => ['nolock,vers=3,udp,noatime']
->>>>>>> c04bdb76b85db8691133346a82fc6b050199476c
+            # :mount_options => ['nolock,vers=3,udp,noatime,actimeo=2']
 
   # Replicate local .gitconfig file if it exists
   if File.file?(File.expand_path("~/.gitconfig"))
@@ -346,11 +340,7 @@ Vagrant.configure("2") do |config|
 
   # Provision Composer
   # You may pass a github auth token as the first argument
-<<<<<<< HEAD
-  # config.vm.provision "shell", path: "#{github_url}/scripts/composer.sh", privileged: false, args: [github_pat, composer_packages.join(" ")]
-=======
-  config.vm.provision "shell", path: "#{github_url}/scripts/composer.sh", privileged: false, args: ["", composer_packages.join(" ")]
->>>>>>> c04bdb76b85db8691133346a82fc6b050199476c
+  config.vm.provision "shell", path: "#{github_url}/scripts/composer.sh", privileged: false, args: [github_pat, composer_packages.join(" ")]
 
   # Provision Laravel
   # config.vm.provision "shell", path: "#{github_url}/scripts/laravel.sh", privileged: false, args: [server_ip, laravel_root_folder, www_folder, laravel_version]
