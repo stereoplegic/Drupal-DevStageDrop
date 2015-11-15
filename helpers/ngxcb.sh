@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+WebRoot=/var/www
+
 # Show the usage for NGXCB
 function show_usage {
 cat <<EOF
@@ -8,24 +10,28 @@ NGXCB:
 Create a new Nginx Server Block (Ubuntu Server).
 Assumes /etc/nginx/sites-available and /etc/nginx/sites-enabled setup used.
 
-    -f    Force ngxcb to overwrite given server block file name
-    -e    Enable the Server Block right away with NGXEN - i.e -e (without any value)
-    -d    DocumentRoot - i.e. -d /vagrant/yoursite
+    -f    Optional - Force ngxcb to overwrite given server block file name
+    -e    Optional - Enable the Server Block right away with NGXEN - i.e "-e" (without any value)
+    -d    DocumentRoot - subfolder of $WebRoot - i.e. "-d yoursite" $WebRoot/yoursite - Optional: defaults to ServerName (-s switch)
     -h    Help - Show this menu.
-    -n    The Server Block file name - default: vagrant - i.e. -n yoursite
-    -s    ServerName - i.e. -s yoursite.com
+    -n    The Server Block file name - i.e. "-n yoursite" - Optional: Defaults to DocumentRoot (-d switch), or ServerName (-s) if -d switch not set
+    -s    ServerName (Required) - i.e. "-s yoursite.com"
 
 EOF
 exit 1
 }
 
 if [ $EUID -ne 0 ]; then
-    echo "!!! Please use root: \"sudo NGXCB\""
+    echo "!!! Please use root: \"sudo ngxcb\""
     show_usage
 fi
 
 # Output Nginx Server Block Config
 function create_server_block {
+
+    # Test if Apache is installed
+    apache2 -v > /dev/null 2>&1
+    APACHE_IS_INSTALLED=$?
 
     # Test if PHP is installed
     php -v > /dev/null 2>&1
@@ -36,11 +42,51 @@ function create_server_block {
     HHVM_IS_INSTALLED=$?
     [[ $HHVM_IS_INSTALLED -eq 0 ]] && { PHP_IS_INSTALLED=-1; }
 
-    # Default empty PHP Config
-    PHP_NO_SSL=""
-    PHP_WITH_SSL=""
+    # Default empty Nginx Root Directive
+    NGINX_ROOT_DIR_NO_SSL=""
+    NGINX_ROOT_DIR_WITH_SSL=""
 
-    if [[ $PHP_IS_INSTALLED -eq 0 ]]; then
+    if [[ $APACHE_IS_INSTALLED -eq 0 ]]; then
+
+read -d '' NGINX_ROOT_DIR_NO_SSL <<EOF
+        location / {
+            proxy_pass http://127.0.0.1:81;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+        }
+EOF
+
+read -d '' NGINX_ROOT_DIR_WITH_SSL <<EOF
+        location / {
+            proxy_pass http://127.0.0.1:4543;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+        }
+EOF
+
+        # Default empty PHP Config
+        PHP_NO_SSL=""
+        PHP_WITH_SSL=""
+
+    else
+
+read -d '' NGINX_ROOT_DIR_NO_SSL <<EOF
+        location / {
+            try_files \$uri \$uri/ /app.php?\$query_string /index.php?\$query_string;
+        }
+EOF
+
+read -d '' NGINX_ROOT_DIR_WITH_SSL <<EOF
+        location / {
+            try_files \$uri \$uri/ /app.php?\$query_string /index.php?\$query_string;
+        }
+EOF
+
+        if [[ $PHP_IS_INSTALLED -eq 0 ]]; then
 
 # Nginx Server Block config for PHP (without using SSL)
 read -d '' PHP_NO_SSL <<EOF
@@ -77,9 +123,9 @@ read -d '' PHP_WITH_SSL <<EOF
             fastcgi_param HTTPS on;
         }
 EOF
-    fi
+        fi
 
-    if [[ $HHVM_IS_INSTALLED -eq 0 ]]; then
+        if [[ $HHVM_IS_INSTALLED -eq 0 ]]; then
 
 # Nginx Server Block config for HHVM (without using SSL)
 read -d '' PHP_NO_SSL <<EOF
@@ -114,6 +160,7 @@ read -d '' PHP_WITH_SSL <<EOF
             fastcgi_param HTTPS on;
         }
 EOF
+        fi
     fi
 
 # Main Nginx Server Block Config
@@ -121,7 +168,7 @@ cat <<EOF
     server {
         listen 80;
 
-        root $DocumentRoot;
+        root $WebRoot/$DocumentRoot;
         index index.html index.htm index.php app.php app_dev.php;
 
         # Make site accessible from ...
@@ -132,9 +179,7 @@ cat <<EOF
 
         charset utf-8;
 
-        location / {
-            try_files \$uri \$uri/ /app.php?\$query_string /index.php?\$query_string;
-        }
+        $NGINX_ROOT_DIR_NO_SSL
 
         location = /favicon.ico { log_not_found off; access_log off; }
         location = /robots.txt  { access_log off; log_not_found off; }
@@ -156,7 +201,7 @@ cat <<EOF
         ssl_certificate     /etc/ssl/xip.io/xip.io.crt;
         ssl_certificate_key /etc/ssl/xip.io/xip.io.key;
 
-        root $DocumentRoot;
+        root $WebRoot/$DocumentRoot;
         index index.html index.htm index.php app.php app_dev.php;
 
         # Make site accessible from ...
@@ -167,9 +212,7 @@ cat <<EOF
 
         charset utf-8;
 
-        location / {
-            try_files \$uri \$uri/ /app.php?\$query_string /index.php?\$query_string;
-        }
+        $NGINX_ROOT_DIR_WITH_SSL
 
         location = /favicon.ico { log_not_found off; access_log off; }
         location = /robots.txt  { access_log off; log_not_found off; }
@@ -187,13 +230,13 @@ EOF
 }
 
 # Check if there are enough arguments provided (2 arguments and there 2 values)
-if [[ $# -lt 4 ]]; then
+if [[ $# -lt 2 ]]; then
     echo "!!! Not enough arguments. Please read the below for NGXCB useage:"
     show_usage
 fi
 
 # The default for the optional argument's:
-ServerBlockName="vagrant"
+#ServerBlockName="vagrant"
 EnableServerBlock=0
 NeedsReload=0
 ForceOverwrite=0
@@ -228,15 +271,29 @@ while getopts ":hd:s:n::ef" OPTION; do
     esac
 done
 
-if [[ ! -d $DocumentRoot ]]; then
-    mkdir -p $DocumentRoot
+if [[ "$ServerName" == "" ]]; then
+    echo "ERROR: Option -s required with an argument." >&2
+    show_usage
+    exit 1
+fi
+
+if [ "$DocumentRoot" == "" ]; then
+    DocumentRoot=$ServerName
+fi
+
+if [ "$ServerBlockName" == "" ]; then
+    ServerBlockName=$ServerName
+fi
+
+if [[ ! -d $WebRoot/$DocumentRoot ]]; then
+    mkdir -p $WebRoot/$DocumentRoot
 fi
 
 if [[ $ForceOverwrite -eq 1 ]]; then
     # remove symlink from sites-enabled directory
     rm -f "/etc/nginx/sites-enabled/${ServerBlockName}" &>/dev/null
     if [[ $? -eq 0 ]]; then
-        # if file has been removed, provide user with information that existing server 
+        # if file has been removed, provide user with information that existing server
         # block is being overwritten
         echo ">>> ${ServerBlockName} is enabled and will be overwritten"
         echo ">>> to enable this server block execute 'ngxen ${ServerBlockName}' or use the -e flag"

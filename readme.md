@@ -1,10 +1,28 @@
 # Vaprobash
 
+***This is my fork of [fideveloper](https://github.com/fideloper "fideveloper")'s Vaprobash collection of Vagrant box and Bash provisioning scripts, modified to provide a LAMP server with an Nginx front end reverse proxy server (just make that sure both the Apache and Nginx provisioner scripts are uncommented in the Vagrantfile).***
+
+With both Apache and Nginx installed, you can create (and enable) both an Apache virtualhost and an Nginx server block for e.g. example.com with the command:
+
+```bash
+vhost -s example.com
+```
+<br>
+
+This will create (by default) /etc/apache2/sites-available/example.com.conf and /etc/nginx/sites-available/example.com, as well as the /var/www/example.com/ docroot directory (assumes that the config file names and docroot are the same as the URL unless the -d switch is given with an argument).
+
+You can add multiple ServerAlias URLs (added as additional URLs to Nginx server\_name directive) by specifying the -a switch, with URL argument in quotes if using more than one URL:
+
+```
+vhost -s example.com -a "anotherexample.com yet.another.example.com"
+```
+<br>
+
 **Va**&#x200B;grant **Pro**&#x200B;visioning **Bash** Scripts
 
 [View the site and extended docs.](http://fideloper.github.io/Vaprobash/index.html)
 
-[![Build Status](https://travis-ci.org/fideloper/Vaprobash.png?branch=master)](https://travis-ci.org/fideloper/Vaprobash)
+[![Build Status](https://travis-ci.org/stereoplegic/Vaprobash.svg?branch=master)](https://travis-ci.org/stereoplegic/Vaprobash)
 
 ## Goal
 
@@ -79,7 +97,7 @@ Here's a quickstart screencast!
 * Web Servers
 	* Apache
 	* HHVM
-	* Nginx
+	* Nginx (standalone or as frontend reverse proxy to Apache)
 * Databases
 	* Couchbase
 	* CouchDB

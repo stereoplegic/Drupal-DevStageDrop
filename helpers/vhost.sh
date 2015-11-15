@@ -1,7 +1,19 @@
 #!/usr/bin/env bash
 
+WebRoot=/var/www
+
 # Run this as sudo!
 # I move this file to /usr/local/bin/vhost and run command 'vhost' from anywhere, using sudo.
+
+# Test if Nginx is installed
+nginx -v > /dev/null 2>&1
+NGINX_IS_INSTALLED=$?
+
+if [[ $NGINX_IS_INSTALLED -eq 0 ]]; then
+APACHE_PORT="81"
+else
+APACHE_PORT="80"
+fi
 
 #
 #   Show Usage, Output to STDERR
@@ -12,9 +24,9 @@ cat <<- _EOF_
 Create a new vHost in Ubuntu Server
 Assumes /etc/apache2/sites-available and /etc/apache2/sites-enabled setup used
 
-    -d    DocumentRoot - i.e. /var/www/yoursite
+    -d    DocumentRoot - subfolder of $WebRoot - i.e. "-d yoursite" is $WebRoot/yoursite - Optional: defaults to ServerName (-s switch)
     -h    Help - Show this menu.
-    -s    ServerName - i.e. example.com or sub.example.com
+    -s    ServerName (Required) - i.e. "-s yoursite.com"
     -a    ServerAlias - i.e. *.example.com or another domain altogether
     -p    File path to the SSL certificate. Directories only, no file name.
           If using an SSL Certificate, also creates a port :443 vhost as well.
@@ -24,9 +36,9 @@ Assumes /etc/apache2/sites-available and /etc/apache2/sites-enabled setup used
           Ensure Apache's mod_ssl is enabled via "sudo a2enmod ssl".
     -c    Certificate filename. "xip.io" becomes "xip.io.key" and "xip.io.crt".
 
-    Example Usage. Serve files from /var/www/xip.io at http(s)://192.168.33.10.xip.io
+    Example Usage. Serve files from $WebRoot/xip.io at http(s)://192.168.33.10.xip.io
                    using ssl files from /etc/ssl/xip.io/xip.io.[key|crt]
-    sudo vhost -d /var/www/xip.io -s 192.168.33.10.xip.io -p /etc/ssl/xip.io -c xip.io
+    sudo vhost -d xip.io -s 192.168.33.10.xip.io -p /etc/ssl/xip.io -c xip.io
 
 _EOF_
 exit 1
@@ -39,15 +51,15 @@ exit 1
 #
 function create_vhost {
 cat <<- _EOF_
-<VirtualHost *:80>
+<VirtualHost *:$APACHE_PORT>
     ServerAdmin webmaster@localhost
     ServerName $ServerName
     $ServerAlias
 
-    DocumentRoot $DocumentRoot
+    DocumentRoot $WebRoot/$DocumentRoot
 
 
-    <Directory $DocumentRoot>
+    <Directory $WebRoot/$DocumentRoot>
         Options -Indexes +FollowSymLinks +MultiViews
         AllowOverride All
         Require all granted
@@ -74,14 +86,18 @@ _EOF_
 
 function create_ssl_vhost {
 cat <<- _EOF_
+if [[ $NGINX_IS_INSTALLED -eq 0 ]]; then
+<VirtualHost *:4543>
+else
 <VirtualHost *:443>
+fi
     ServerAdmin webmaster@localhost
     ServerName $ServerName
     $ServerAlias
 
-    DocumentRoot $DocumentRoot
+    DocumentRoot $WebRoot/$DocumentRoot
 
-    <Directory $DocumentRoot>
+    <Directory $WebRoot/$DocumentRoot>
         Options -Indexes +FollowSymLinks +MultiViews
         AllowOverride All
         Require all granted
@@ -119,8 +135,8 @@ cat <<- _EOF_
 _EOF_
 }
 
-#Sanity Check - are there two arguments with 2 values?
-if [ "$#" -lt 4 ]; then
+#Sanity Check - are there one or more arguments with corresponding values?
+if [ "$#" -lt 1 ]; then
     show_usage
 fi
 
@@ -160,17 +176,27 @@ else
     ServerAlias=""
 fi
 
+if [[ "$ServerName" == "" ]]; then
+    echo "ERROR: Option -s required with an argument." >&2
+    show_usage
+    exit 1
+fi
+
+if [ "$DocumentRoot" == "" ]; then
+    DocumentRoot=$ServerName
+fi
+
 # If CertName doesn't get set, set it to ServerName
 if [ "$CertName" == "" ]; then
     CertName=$ServerName
 fi
 
-if [ ! -d $DocumentRoot ]; then
-    mkdir -p $DocumentRoot
-    #chown USER:USER $DocumentRoot #POSSIBLE IMPLEMENTATION, new flag -u ?
+if [ ! -d $WebRoot/$DocumentRoot ]; then
+    mkdir -p $WebRoot/$DocumentRoot
+    #chown USER:USER $WebRoot/$DocumentRoot #POSSIBLE IMPLEMENTATION, new flag -u ?
 fi
 
-if [ -f "$DocumentRoot/$ServerName.conf" ]; then
+if [ -f "$WebRoot/$DocumentRoot/$ServerName.conf" ]; then
     echo 'vHost already exists. Aborting'
     show_usage
 else
@@ -184,4 +210,9 @@ else
     # Enable Site
     cd /etc/apache2/sites-available/ && a2ensite ${ServerName}.conf
     service apache2 reload
+
+    # Create and Enable Nginx Server Block (if Nginx is installed)
+    if [[ $NGINX_IS_INSTALLED -eq 0 ]]; then
+        ngxcb -e -d $DocumentRoot -n $ServerName -s "$ServerName $Alias"
+    fi
 fi
