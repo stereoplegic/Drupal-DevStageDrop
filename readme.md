@@ -12,13 +12,13 @@ This will create (by default) /etc/apache2/sites-available/example.com.conf and 
 
 You can add multiple ServerAlias URLs (added as additional URLs to Nginx server\_name directive) by specifying the -a switch, with URL argument in quotes if using more than one URL:
 
-```
+```bash
 vhost -s example.com -a "anotherexample.com yet.another.example.com"
 ```
 
 The above examples assume that your docroot will be the same name as the site's primary URL e.g. /var/www/example.com. If you want to specify a different directory, use the -d switch:
 
-```
+```bash
 vhost -s example.com -a "anotherexample.com yet.another.example.com"
 ```
 
@@ -49,7 +49,11 @@ Some further assumptions and self-imposed restrictions. If you find yourself nee
 
 ## Instructions
 
-**First**, Copy the Vagrantfile from this repo. You may wish to use curl or wget to do this instead of cloning the repository.
+***I use this setup heavily for local development, and so I've added Vagrantfile to my .gitignore.***
+
+***To get started, copy or rename Vagrantfile_example to Vagrantfile and change the example settings to suit your needs***
+
+~~**First**, Copy the Vagrantfile from this repo. You may wish to use curl or wget to do this instead of cloning the repository.
 
 ```bash
 # curl
@@ -59,13 +63,21 @@ $ curl -L http://bit.ly/vaprobash > Vagrantfile
 $ wget -O Vagrantfile http://bit.ly/vaprobash
 ```
 
-> The `bit.ly` link will always point to the master branch version of the Vagrantfile.
+> The `bit.ly` link will always point to the master branch version of the Vagrantfile.~~
 
-**Second**, edit the `Vagrantfile` and uncomment which scripts you'd like to run. You can uncomment them by removing the `#` character before the `config.vm.provision` line.
+**First**, clone this repo (substituting "YOURFOLDER" with whatever folder name you'd like, or removing "YOURFOLDER" and the preceeding space to clone into a newly-created "Vaprobash" folder):
+
+```bash
+git https://github.com/stereoplegic/Vaprobash.git YOURFOLDER
+```
+
+**Second**, copy or rename Vagrantfile_example to Vagrantfile.
+
+~~**Second**~~ **Third**, edit the `Vagrantfile` and uncomment which scripts you'd like to run. You can uncomment them by removing the `#` character before the `config.vm.provision` line.
 
 > You can indeed have [multiple provisioning](http://docs.vagrantup.com/v2/provisioning/basic_usage.html) scripts when provisioning Vagrant.
 
-**Third** and finally, run:
+~~**Third**~~ **Fourth** and finally, run:
 
 ```bash
 $ vagrant up
@@ -133,10 +145,6 @@ Here's a quickstart screencast!
 	* Android
 
 ## The Vagrantfile
-
-***I use this setup heavily for local development, and so I've added Vagrantfile to my .gitignore.***
-
-***To get started, copy or rename Vagrantfile_example to Vagrantfile and change the example settings to suit your needs***
 
 The vagrant file does three things you should take note of:
 
