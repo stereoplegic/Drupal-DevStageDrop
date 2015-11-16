@@ -134,6 +134,10 @@ Here's a quickstart screencast!
 
 ## The Vagrantfile
 
+***I use this setup heavily for local development, and so I've added Vagrantfile to my .gitignore.***
+
+***To get started, copy or rename Vagrantfile_example to Vagrantfile and change the example settings to suit your needs***
+
 The vagrant file does three things you should take note of:
 
 1. **Gives the virtual machine a static IP address of 192.168.22.10.** This IP address is again hard-coded (for now) into the LAMP, LEMP and Laravel/Symfony installers. This static IP allows us to use [xip.io](http://xip.io) for the virtual host setups while avoiding having to edit our computers' `hosts` file.
