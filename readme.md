@@ -53,17 +53,17 @@ Some further assumptions and self-imposed restrictions. If you find yourself nee
 
 ***To get started, copy or rename Vagrantfile_example to Vagrantfile and change the example settings to suit your needs***
 
-~~**First**, Copy the Vagrantfile from this repo. You may wish to use curl or wget to do this instead of cloning the repository.
+~~**First**, Copy the Vagrantfile from this repo. You may wish to use curl or wget to do this instead of cloning the repository.~~
 
-```bash
+~~```bash
 # curl
 $ curl -L http://bit.ly/vaprobash > Vagrantfile
 
 # wget
 $ wget -O Vagrantfile http://bit.ly/vaprobash
-```
+```~~
 
-> The `bit.ly` link will always point to the master branch version of the Vagrantfile.~~
+~~> The `bit.ly` link will always point to the master branch version of the Vagrantfile.~~
 
 **First**, clone this repo (substituting "YOURFOLDER" with whatever folder name you'd like, or removing "YOURFOLDER" and the preceeding space to clone into a newly-created "Vaprobash" folder):
 
