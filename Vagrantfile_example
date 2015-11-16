@@ -105,8 +105,7 @@ Vagrant.configure("2") do |config|
   # vagrant plugin install vagrant-hostsupdater
   if Vagrant.has_plugin?("vagrant-hostsupdater")
     config.vm.network :private_network, ip: "192.168.3.10"
-    config.vm.hostname = "sp1local.saverhost.com"
-    config.hostsupdater.aliases = ["iqdecoration.com" , "iqdecorating.com" , "euphoriemassage.com" , "mikebybee.com" , "enlightencoffee.com" , "kb.parallelpublicworks.local"
+    config.hostsupdater.aliases = ["example.com" , "example2.com" , "subdomain.example3.com" , "example4.local"
   ]
   end
 
@@ -122,13 +121,13 @@ Vagrant.configure("2") do |config|
   # Enable agent forwarding over SSH connections
   config.ssh.forward_agent = true
 
-  # Use NFS for the shared folder ##Unfortunately doesn't work on Ubuntu 14.04-15.10 hosts for me
+  # Use NFS for the shared folder  ##Unfortunately doesn't work on Ubuntu 14.04-15.10 hosts for me
   config.vm.synced_folder "../../Projects", "/projects", :create=> "true"
   config.vm.synced_folder "../www", "/var/www", :create=> "true"
   config.vm.synced_folder ".", "/vagrant",
             id: "core"
-            #:nfs => true,
-            #:mount_options => ['nolock,vers=3,udp,noatime,actimeo=2']
+            # :nfs => true,
+            # :mount_options => ['nolock,vers=3,udp,noatime,actimeo=2']
 
   # Replicate local .gitconfig file if it exists
   if File.file?(File.expand_path("~/.gitconfig"))
@@ -362,10 +361,27 @@ Vagrant.configure("2") do |config|
   # Add these to the same directory as the Vagrantfile.
   ##########
   # config.vm.provision "shell", path: "./local-script.sh"
-  config.vm.provision "shell", path: "../scripts/vhosts/enlightencoffee.sh"
-  config.vm.provision "shell", path: "../scripts/vhosts/euphoriemassage.sh"
-  config.vm.provision "shell", path: "../scripts/vhosts/iqdecoration.sh"
-  config.vm.provision "shell", path: "../scripts/vhosts/mikebybee.sh"
-  config.vm.provision "shell", path: "../scripts/vhosts/kb.parallelpublicworks.sh", args: [mysql_root_password]
+
+
+  # I keep my site provisioner scripts one level up in scripts/vhosts/ folder,
+  # like my websites (one level up in www/ folder),
+  # so that both are independent of this particular box.
+
+  config.vm.provision "shell", path: "../scripts/vhosts/example_site.sh"
+  config.vm.provision "shell", path: "../scripts/vhosts/example_site_2.sh"
+
+
+  # example with argument passed from Vagrantfile (for MySQL setup).
+  # example_site_3.sh can look something like this (ignoring the first row of "#" comments, of course):
+  #   #!/usr/bin/env bash
+  #   # Create a single Apache virtualhost (and Nginx server block if enabled as frontend reverse proxy) with urls all pointing to "/var/www/subdomain.example3.com".
+  #   sudo vhost -d example_site_3 -s subdomain.example3.com -a "example4.local"
+  #   # Create MySQL Database and import from backup
+  #   mysql -u root --password="$1" -e "create database example_database";
+  #   mysql -u root --password="$1" example_database < /projects/example_site_3/database.sql
+
+  # The value of the "mysql_root_password" variable then get passed to the shell script's "$1" variable:
+
+  # config.vm.provision "shell", path: "../scripts/vhosts/example_site_3.sh", args: [mysql_root_password]
 
 end
