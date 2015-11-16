@@ -53,18 +53,6 @@ Some further assumptions and self-imposed restrictions. If you find yourself nee
 
 ***To get started, copy or rename Vagrantfile_example to Vagrantfile and change the example settings to suit your needs***
 
-~~**First**, Copy the Vagrantfile from this repo. You may wish to use curl or wget to do this instead of cloning the repository.~~
-
-~~```bash
-# curl
-$ curl -L http://bit.ly/vaprobash > Vagrantfile
-
-# wget
-$ wget -O Vagrantfile http://bit.ly/vaprobash
-```~~
-
-~~> The `bit.ly` link will always point to the master branch version of the Vagrantfile.~~
-
 **First**, clone this repo (substituting "YOURFOLDER" with whatever folder name you'd like, or removing "YOURFOLDER" and the preceeding space to clone into a newly-created "Vaprobash" folder):
 
 ```bash
@@ -73,11 +61,11 @@ git https://github.com/stereoplegic/Vaprobash.git YOURFOLDER
 
 **Second**, copy or rename Vagrantfile_example to Vagrantfile.
 
-~~**Second**~~ **Third**, edit the `Vagrantfile` and uncomment which scripts you'd like to run. You can uncomment them by removing the `#` character before the `config.vm.provision` line.
+**Third**, edit the `Vagrantfile` and uncomment which scripts you'd like to run. You can uncomment them by removing the `#` character before the `config.vm.provision` line.
 
 > You can indeed have [multiple provisioning](http://docs.vagrantup.com/v2/provisioning/basic_usage.html) scripts when provisioning Vagrant.
 
-~~**Third**~~ **Fourth** and finally, run:
+**Fourth** and finally, run:
 
 ```bash
 $ vagrant up
