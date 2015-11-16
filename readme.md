@@ -7,7 +7,6 @@ With both Apache and Nginx installed, you can create (and enable) both an Apache
 ```bash
 vhost -s example.com
 ```
-<br>
 
 This will create (by default) /etc/apache2/sites-available/example.com.conf and /etc/nginx/sites-available/example.com, as well as the /var/www/example.com/ docroot directory (assumes that the config file names and docroot are the same as the URL unless the -d switch is given with an argument).
 
@@ -16,14 +15,12 @@ You can add multiple ServerAlias URLs (added as additional URLs to Nginx server\
 ```
 vhost -s example.com -a "anotherexample.com yet.another.example.com"
 ```
-<br>
 
 The above examples assume that your docroot will be the same name as the site's primary URL e.g. /var/www/example.com. If you want to specify a different directory, use the -d switch:
 
 ```
 vhost -s example.com -a "anotherexample.com yet.another.example.com"
 ```
-<br>
 
 **Va**&#x200B;grant **Pro**&#x200B;visioning **Bash** Scripts
 
