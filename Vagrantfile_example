@@ -367,8 +367,8 @@ Vagrant.configure("2") do |config|
   # like my websites (one level up in www/ folder),
   # so that both are independent of this particular box.
 
-  config.vm.provision "shell", path: "../scripts/vhosts/example_site.sh"
-  config.vm.provision "shell", path: "../scripts/vhosts/example_site_2.sh"
+  # config.vm.provision "shell", path: "../scripts/vhosts/example_site.sh"
+  # config.vm.provision "shell", path: "../scripts/vhosts/example_site_2.sh"
 
 
   # example with argument passed from Vagrantfile (for MySQL setup).

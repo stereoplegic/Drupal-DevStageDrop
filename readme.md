@@ -18,6 +18,13 @@ vhost -s example.com -a "anotherexample.com yet.another.example.com"
 ```
 <br>
 
+The above examples assume that your docroot will be the same name as the site's primary URL e.g. /var/www/example.com. If you want to specify a different directory, use the -d switch:
+
+```
+vhost -s example.com -a "anotherexample.com yet.another.example.com"
+```
+<br>
+
 **Va**&#x200B;grant **Pro**&#x200B;visioning **Bash** Scripts
 
 [View the site and extended docs.](http://fideloper.github.io/Vaprobash/index.html)
