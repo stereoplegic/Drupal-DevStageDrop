@@ -167,16 +167,16 @@ Vagrant.configure("2") do |config|
 
   # If using Vagrant-Cachier
   # http://fgrehm.viewdocs.io/vagrant-cachier
-  #if Vagrant.has_plugin?("vagrant-cachier")
+  if Vagrant.has_plugin?("vagrant-cachier")
     # Configure cached packages to be shared between instances of the same base box.
     # Usage docs: http://fgrehm.viewdocs.io/vagrant-cachier/usage
-    #config.cache.scope = :box
+    config.cache.scope = :box
 
     #config.cache.synced_folder_opts = {
         # type: :nfs,
         # mount_options: ['rw', 'vers=3', 'tcp', 'nolock']
     #}
-  #end
+  end
 
   # Adding vagrant-digitalocean provider - https://github.com/smdahlen/vagrant-digitalocean
   # Needs to ensure that the vagrant plugin is installed
@@ -218,7 +218,7 @@ Vagrant.configure("2") do |config|
   # Web Servers
   ##########
 
-  # Provision Apache Base (1st line below), optionally install mod_pagespeed (2nd line below)
+  # Provision Apache Base (1st line below), optionally install mod_pagespeed (2nd line below, safe to leave uncommented as it only installs if Apache is installed)
   config.vm.provision "shell", path: "#{github_url}/scripts/apache.sh", args: [server_ip, www_folder, hostname, github_url]
   config.vm.provision "shell", path: "#{github_url}/scripts/mod_pagespeed.sh"
 
