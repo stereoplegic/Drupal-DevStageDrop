@@ -218,8 +218,9 @@ Vagrant.configure("2") do |config|
   # Web Servers
   ##########
 
-  # Provision Apache Base
+  # Provision Apache Base (1st line below), optionally install mod_pagespeed (2nd line below)
   config.vm.provision "shell", path: "#{github_url}/scripts/apache.sh", args: [server_ip, www_folder, hostname, github_url]
+  config.vm.provision "shell", path: "#{github_url}/scripts/mod_pagespeed.sh"
 
   # Provision Nginx Base
   config.vm.provision "shell", path: "#{github_url}/scripts/nginx.sh", args: [server_ip, www_folder, hostname, github_url]
