@@ -10,7 +10,7 @@ sudo update-locale LANG=en_US.UTF-8 LC_CTYPE=en_US.UTF-8
 echo ">>> Installing Base Packages"
 
 if [[ -z $1 ]]; then
-    github_url="https://raw.githubusercontent.com/fideloper/Vaprobash/master"
+    github_url="https://raw.githubusercontent.com/stereoplegic/Drupal-DevStageDrop/master"
 else
     github_url="$1"
 fi
@@ -20,7 +20,7 @@ sudo apt-get update
 
 # Install base packages
 # -qq implies -y --force-yes
-sudo apt-get install -qq curl unzip git-core ack-grep software-properties-common build-essential
+sudo apt-get install -qq curl unzip git-core ack-grep software-properties-common build-essential cachefilesd
 
 
 echo ">>> Installing *.xip.io self-signed SSL"
