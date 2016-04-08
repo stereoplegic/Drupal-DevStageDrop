@@ -1,21 +1,37 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+if File.exists?(File.expand_path "./config/global.json")
+  global = JSON.parse(File.read(File.expand_path "./config/global.json"))
+end
+if File.exists?(File.expand_path "./config/local.json")
+  local = JSON.parse(File.read(File.expand_path "./config/local.json"))
+end
+if File.exists?(File.expand_path "./config/sites.json")
+  sites = JSON.parse(File.read(File.expand_path "./config/sites.json"))
+end
+
+
+# unless Vagrant.has_plugin?("vagrant-host-shell")
+    # puts "`vagrant-host-shell` plugin not found. Installing it now."
+    # %x( vagrant plugin install vagrant-host-shell )
+#end
+
+
 # Config Github Settings
 github_username = "stereoplegic"
 github_repo     = "Vaprobash"
-github_branch   = “1.4.2”
+github_branch   = "1.4.1"
 #github_url      = "https://raw.githubusercontent.com/#{github_username}/#{github_repo}/#{github_branch}"
 # Why not just get scripts from local repo?
 github_url      = "."
-
 # Because this:https://developer.github.com/changes/2014-12-08-removing-authorizations-token/
 # https://github.com/settings/tokens
 github_pat          = ""
 
 # Server Configuration
 
-hostname        = "vaprobash.dev"
+hostname        = local["hostname"]
 
 # Set a local private network IP address.
 # See http://en.wikipedia.org/wiki/Private_network for explanation
@@ -23,16 +39,11 @@ hostname        = "vaprobash.dev"
 #   10.0.0.1    - 10.255.255.254
 #   172.16.0.1  - 172.31.255.254
 #   192.168.0.1 - 192.168.255.254
-server_ip             = "192.168.22.10"
-server_cpus           = "1"   # Cores
-server_memory         = "512" # MB
-server_swap           = "768" # Options: false | int (MB) - Guideline: Between one or two times the server_memory
-
-# UTC        for Universal Coordinated Time
-# EST        for Eastern Standard Time
-# US/Central for American Central
-# US/Eastern for American Eastern
-server_timezone  = "US/Central"
+server_ip             = local["ip"]
+server_cpus           = local["cpus"]   # Cores
+server_memory         = local["memory"] # MB
+server_swap           = local["swap"] # Options: false | int (MB) - Guideline: Between one or two times the server_memory
+server_timezone       = global["timezone"] # Use "America/Los Angeles" format for PHP compatibility, not e.g. "US/Central".
 
 # Database Configuration
 mysql_root_password   = "root"   # We'll assume user "root"
@@ -43,7 +54,7 @@ mongo_version         = "3.0"    # Options: 2.6 | 3.0
 mongo_enable_remote   = "false"  # remote access enabled when true
 
 # Languages and Packages
-php_timezone          = "America/Chicago"    # http://php.net/manual/en/timezones.php
+php_timezone          = global["timezone"]    # http://php.net/manual/en/timezones.php
 php_version           = "5.6"    # Options: 5.5 | 5.6
 ruby_version          = "latest" # Choose what ruby version should be installed (will also be the default version)
 ruby_gems             = [        # List any Ruby Gems that you want to install
@@ -59,12 +70,13 @@ hhvm                  = "false"
 
 # PHP Options
 composer_packages     = [        # List any global Composer packages that you want to install
-  "drush/drush:dev-master",
+  "drush/drush:8.*",
   "drush/config-extra",
-  "phpunit/phpunit:4.0.*",
-  #"codeception/codeception=*",
-  #"phpspec/phpspec:2.0.*@dev",
-  "squizlabs/php_codesniffer:1.5.*",
+  "drupal/coder"
+  # "phpunit/phpunit:4.0.*",
+  # "codeception/codeception=*",
+  # "phpspec/phpspec:2.0.*@dev",
+  # "squizlabs/php_codesniffer:1.5.*",
 ]
 
 # Default shared folder
@@ -104,35 +116,57 @@ Vagrant.configure("2") do |config|
 
   # Depends on vagrant-hostsupdater plugin, available via command:
   # vagrant plugin install vagrant-hostsupdater
+  unless Vagrant.has_plugin?("vagrant-hostsupdater")
+      #raise "`vagrant-hostsupdater` is a required plugin. Install it by running: vagrant plugin install vagrant-hostsupdater"
+      puts "`vagrant-hostsupdater` plugin not found. Installing it now."
+      %x( vagrant plugin install vagrant-hostsupdater )
+  end
   if Vagrant.has_plugin?("vagrant-hostsupdater")
     config.vm.network :private_network, ip: "192.168.3.10"
-    config.hostsupdater.aliases = ["example.com" , "example2.com" , "subdomain.example3.com" , "example4.local"
-  ]
+    config.vm.hostname = "sp1local.saverhost.com"
+    config.hostsupdater.aliases = []
+    sites.each do |index, site|
+      if site["aliases"]
+        site["aliases"].each do |alias_url|
+          config.hostsupdater.aliases.push(alias_url)
+        end
+      end
+    end
   end
 
   # Create a hostname, don't forget to put it to the `hosts` file
   # This will point to the server's default virtual host
   # TO DO: Make this work with virtualhost along-side xip.io URL
-  config.vm.hostname = hostname
+  config.vm.hostname = local["hostname"]
 
   # Create a static IP
-  if Vagrant.has_plugin?("vagrant-auto_network")
-    config.vm.network :private_network, :ip => "0.0.0.0", :auto_network => true
-  else
-    config.vm.network :private_network, ip: server_ip
-    config.vm.network :forwarded_port, guest: 80, host: 8000
-  end
+  config.vm.network :private_network, ip: server_ip
+  config.vm.network :forwarded_port, guest: 80, host: 8000
 
   # Enable agent forwarding over SSH connections
   config.ssh.forward_agent = true
 
-  # Use NFS for the shared folder  ##Unfortunately doesn't work on Ubuntu 14.04-15.10 hosts for me
+  # Use NFS for the shared folder
   config.vm.synced_folder "../../Projects", "/projects", :create=> "true"
+  # Parallel-specific: sync default site files (excluded by .gitignore)
   config.vm.synced_folder "../www", "/var/www", :create=> "true"
+  config.vm.synced_folder "../drush", "/home/vagrant/.drush", :create=> "true"
+
+  # Site-specific synced folders. Local folder will be created if it doesn't exist.
+  # Configure in config/sites.json
+  sites.each do |index, site|
+    if site["synced_folders"]
+      site["synced_folders"].each do |host_path, guest_path|
+        config.vm.synced_folder "#{host_path}", "#{guest_path}", :create=> "true"
+      end
+    end
+  end
+
   config.vm.synced_folder ".", "/vagrant",
             id: "core"
             # :nfs => true,
             # :mount_options => ['nolock,vers=3,udp,noatime,actimeo=2']
+
 
   # Replicate local .gitconfig file if it exists
   if File.file?(File.expand_path("~/.gitconfig"))
@@ -145,10 +179,10 @@ Vagrant.configure("2") do |config|
     vb.name = hostname
 
     # Set server cpus
-    vb.customize ["modifyvm", :id, "--cpus", server_cpus]
+    vb.customize ["modifyvm", :id, "--cpus", local["cpus"]]
 
     # Set server memory
-    vb.customize ["modifyvm", :id, "--memory", server_memory]
+    vb.customize ["modifyvm", :id, "--memory", local["memory"]]
 
     # Set the timesync threshold to 10 seconds, instead of the default 20 minutes.
     # If the clock gets more than 15 minutes out of sync (due to your laptop going
@@ -166,12 +200,16 @@ Vagrant.configure("2") do |config|
     override.vm.box_url = "http://files.vagrantup.com/precise64_vmware.box"
 
     # Set server memory
-    vb.vmx["memsize"] = server_memory
+    vb.vmx["memsize"] = local["memory"]
 
   end
 
   # If using Vagrant-Cachier
   # http://fgrehm.viewdocs.io/vagrant-cachier
+  unless Vagrant.has_plugin?("vagrant-cachier")
+    puts "`vagrant-cachier` plugin not found. Installing it now."
+    %x( vagrant plugin install vagrant-cachier )
+  end
   if Vagrant.has_plugin?("vagrant-cachier")
     # Configure cached packages to be shared between instances of the same base box.
     # Usage docs: http://fgrehm.viewdocs.io/vagrant-cachier/usage
@@ -223,9 +261,9 @@ Vagrant.configure("2") do |config|
   # Web Servers
   ##########
 
-  # Provision Apache Base (1st line below), optionally install mod_pagespeed (2nd line below, safe to leave uncommented as it only installs if Apache is installed)
+  # Provision Apache Base (1st line below), optionally install mod_pagespeed (2nd line below)
   config.vm.provision "shell", path: "#{github_url}/scripts/apache.sh", args: [server_ip, www_folder, hostname, github_url]
-  config.vm.provision "shell", path: "#{github_url}/scripts/mod_pagespeed.sh"
+  # config.vm.provision "shell", path: "#{github_url}/scripts/mod_pagespeed.sh"
 
   # Provision Nginx Base
   config.vm.provision "shell", path: "#{github_url}/scripts/nginx.sh", args: [server_ip, www_folder, hostname, github_url]
@@ -254,7 +292,7 @@ Vagrant.configure("2") do |config|
   # config.vm.provision "shell", path: "#{github_url}/scripts/couchdb.sh"
 
   # Provision MongoDB
-  config.vm.provision "shell", path: "#{github_url}/scripts/mongodb.sh", args: [mongo_enable_remote, mongo_version]
+  # config.vm.provision "shell", path: "#{github_url}/scripts/mongodb.sh", args: [mongo_enable_remote, mongo_version]
 
   # Provision MariaDB
   config.vm.provision "shell", path: "#{github_url}/scripts/mariadb.sh", args: [mysql_root_password, mysql_enable_remote]
@@ -340,6 +378,10 @@ Vagrant.configure("2") do |config|
   # You may pass a github auth token as the first argument
   config.vm.provision "shell", path: "#{github_url}/scripts/composer.sh", privileged: false, args: [github_pat, composer_packages.join(" ")]
 
+  # Drush Modules
+  # Install if Drush has been installed via Composer (set in composer_packages variable)
+  config.vm.provision "shell", path: "#{github_url}/scripts/drush-modules.sh", privileged: false
+
   # Provision Laravel
   # config.vm.provision "shell", path: "#{github_url}/scripts/laravel.sh", privileged: false, args: [server_ip, laravel_root_folder, www_folder, laravel_version]
 
@@ -368,26 +410,80 @@ Vagrant.configure("2") do |config|
   ##########
   # config.vm.provision "shell", path: "./local-script.sh"
 
+  ####
+  # Site Provisioning Scripts
+  # Create Apache vhost and/or Nginx server block for each site with
+  # "enabled": true
+  # set in config/sites.json
 
-  # I keep my site provisioner scripts one level up in scripts/vhosts/ folder,
-  # like my websites (one level up in www/ folder),
-  # so that both are independent of this particular box.
+  sites.each do |index, site|
+    if site["enabled"]
+      if site["provisioners"]
+        site["provisioners"].each_with_index do |provisioner|
+          if provisioner["type"] == "inline"
+            config.vm.provision :shell, privileged: provisioner["privileged"], inline: provisioner["script"]
+          else
+            config.vm.provision provisioner["type"], privileged: provisioner["privileged"], path: provisioner["script"]
+          end
+        end
+      end
+    end
+  end
 
-  # config.vm.provision "shell", path: "../scripts/vhosts/example_site.sh"
-  # config.vm.provision "shell", path: "../scripts/vhosts/example_site_2.sh"
+  #config.vm.provision "shell", path: "../scripts/vhosts/enlightencoffee.sh"
 
+  #config.vm.provision "shell", path: "../scripts/vhosts/euphoriemassage.sh"
 
-  # example with argument passed from Vagrantfile (for MySQL setup).
-  # example_site_3.sh can look something like this (ignoring the first row of "#" comments, of course):
-  #   #!/usr/bin/env bash
-  #   # Create a single Apache virtualhost (and Nginx server block if enabled as frontend reverse proxy) with urls all pointing to "/var/www/subdomain.example3.com".
-  #   sudo vhost -d example_site_3 -s subdomain.example3.com -a "example4.local"
-  #   # Create MySQL Database and import from backup
-  #   mysql -u root --password="$1" -e "create database example_database";
-  #   mysql -u root --password="$1" example_database < /projects/example_site_3/database.sql
+  #config.vm.provision "shell", path: "../scripts/vhosts/iqdecoration.sh"
 
-  # The value of the "mysql_root_password" variable then get passed to the shell script's "$1" variable:
+  #config.vm.provision "shell", path: "../scripts/vhosts/mikebybee.sh"
 
-  # config.vm.provision "shell", path: "../scripts/vhosts/example_site_3.sh", args: [mysql_root_password]
+  #config.vm.provision "shell", path: "../scripts/vhosts/d8.parallelpublicworks.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.d8 updb"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/kb.parallelpublicworks.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.kb en -y diff"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/otolaryngology.uw.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.uw-oto en -y diff devel"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/immunology.uw.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.uw-immunology updb -y"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/ophthalmology.uw.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.uw-ophthalmology updb -y"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/newsbeat.uw.sh", args: [mysql_root_password]
+  # Aggregated CSS can render as an invalid mimetype if not unset after import
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.newsbeat updb -y"
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.newsbeat vset preprocess_css 0 -y"
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.newsbeat vset preprocess_css 1 -y"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/cel.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.cel updb -y"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/d6.5d.cel.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.d6.5d.cel updb -y"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/del-ece.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.del-ece updb -y"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/alliedfeather.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.alliedfeather updb -y"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/iposc.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.iposc updb -y"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/realnetworks.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.realnetworks updb -y"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/rnn.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.rnn updb -y"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/wria1.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.wria1 updb -y"
+
+  #config.vm.provision "shell", path: "../scripts/vhosts/wscc.sh", args: [mysql_root_password]
+  #config.vm.provision :shell, privileged: false, inline: "~/.composer/vendor/bin/drush @parallel.wscc updb -y"
 
 end
