@@ -4,7 +4,11 @@
 # Config Github Settings
 github_username = "stereoplegic"
 github_repo     = "Vaprobash"
+<<<<<<< HEAD
 github_branch   = "1.4.1"
+=======
+github_branch   = “1.4.2”
+>>>>>>> f6cbdcdaddb3723b9080781f62c47f59153bb08b
 #github_url      = "https://raw.githubusercontent.com/#{github_username}/#{github_repo}/#{github_branch}"
 # Why not just get scripts from local repo?
 github_url      = "."
