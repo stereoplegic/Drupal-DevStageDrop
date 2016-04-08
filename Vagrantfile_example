@@ -30,6 +30,7 @@ server_swap           = "768" # Options: false | int (MB) - Guideline: Between o
 
 # UTC        for Universal Coordinated Time
 # EST        for Eastern Standard Time
+# CET        for Central European Time
 # US/Central for American Central
 # US/Eastern for American Eastern
 server_timezone  = "US/Central"
@@ -130,9 +131,9 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder "../../Projects", "/projects", :create=> "true"
   config.vm.synced_folder "../www", "/var/www", :create=> "true"
   config.vm.synced_folder ".", "/vagrant",
-            id: "core"
-            # :nfs => true,
-            # :mount_options => ['nolock,vers=3,udp,noatime,actimeo=2']
+    id: "core",
+    :nfs => true,
+    :mount_options => ['nolock,vers=3,udp,noatime,actimeo=2,fsc']
 
   # Replicate local .gitconfig file if it exists
   if File.file?(File.expand_path("~/.gitconfig"))

@@ -78,3 +78,6 @@ fi
 
 # Enable case sensitivity
 shopt -u nocasematch
+
+# Enable cachefilesd
+echo "RUN=yes" > /etc/default/cachefilesd
