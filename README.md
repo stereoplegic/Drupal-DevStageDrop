@@ -163,7 +163,3 @@ Change your IP address as needed. The default IP address is now `192.168.22.10`
 ## Contribute!
 
 Do it! Any new install or improvement on existing ones are welcome! Please see the [contributing doc](/contributing.md).
-<<<<<<< HEAD
-=======
-
->>>>>>> 94cc60dffd10be0553d523abf81b022aae0af7b1
