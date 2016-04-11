@@ -1,6 +1,6 @@
-# Vaprobash
+# Drupal-DevStageDrop
 
-***This is my fork of [fideloper](https://github.com/fideloper "fideveloper")'s Vaprobash collection of Vagrant box and Bash provisioning scripts, modified to provide a LAMP server with an Nginx front end reverse proxy server (just make that sure both the Apache and Nginx provisioner scripts are uncommented in the Vagrantfile).***
+***This is my fork of [fideloper](https://github.com/fideloper "fideveloper")'s Vaprobash collection of Vagrant box and Bash provisioning scripts, modified to provide a LAMP server with an Nginx front end reverse proxy server (just make that sure both the Apache and Nginx provisioner scripts are uncommented in the Vagrantfile), optimized (at least attempting to be) for Drupal and to provide parity across Dev/Stage/proD workflows (see what I did there?). This is an ambitious (and far from complete) undertaking, but it is my intention to bring what I have been able to accomplish with Vagrant and BASH scripts in both Drupal- and non-Drupal-specific environments to all Drupal developers.***
 
 With both Apache and Nginx installed, you can create (and enable) both an Apache virtualhost and an Nginx server block for e.g. example.com with the command:
 
